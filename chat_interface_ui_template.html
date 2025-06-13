@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foody Agent</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <script>
         const APP_NAME = "Foody Agent";
-        const CHAT_ENDPOINT = "/chat";
+        const CHAT_ENDPOINT = "http://127.0.0.1:5000/assistant";
     </script>
     <style>
         * {
@@ -137,6 +138,58 @@
             color: white;
             border-color: #4a5568;
             margin-right: 48px;
+        }
+
+        /* Styling for markdown formatting */
+        .message-content strong {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .message-content em {
+            font-style: italic;
+        }
+
+        .message-content code {
+            background: #404040;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content pre {
+            background: #404040;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .message-content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .message-content ul, .message-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin: 4px 0;
+        }
+
+        .message-content p {
+            margin: 8px 0;
+        }
+
+        .message-content p:first-child {
+            margin-top: 0;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
         }
 
         .input-container {
@@ -270,7 +323,14 @@
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
-            messageContent.textContent = content;
+
+            // For user messages, use plain text. For assistant messages, parse markdown
+            if (isUser) {
+                messageContent.textContent = content;
+            } else {
+                const processedContent = marked.parse(content);
+                messageContent.innerHTML = processedContent;
+            }
 
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(messageContent);
@@ -325,7 +385,7 @@
                 const response = await fetch(CHAT_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ID: conversationId, query: message })
+                    body: JSON.stringify({ id: conversationId, query: message })
                 });
 
                 const data = await response.json();
